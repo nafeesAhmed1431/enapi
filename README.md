@@ -8,7 +8,11 @@ A lightweight, flexible PHP package for building dynamic REST APIs with automati
 
 - 🚀 **Auto-generate APIs** - Automatically creates CRUD endpoints for all your models
 - 🔄 **RESTful HTTP methods** - GET, POST, PUT, DELETE support
-- 🗄️ **Database abstraction** - Built-in PDO wrapper with query builder
+- � **Built-in Analytics** - Stats, aggregations, grouping out of the box
+- 🔍 **Advanced Filtering** - Search, filter, sort, paginate automatically
+- 📦 **Batch Operations** - Update or delete multiple records at once
+- 📤 **Data Export** - Export endpoints for all resources
+- �🗄️ **Database abstraction** - Built-in PDO wrapper with query builder
 - 📦 **Model-based architecture** - Simple ORM-like base model class
 - 🛡️ **Middleware support** - Add custom middleware to routes
 - 🔌 **Easy to extend** - Override any method or add custom routes
@@ -86,17 +90,23 @@ header('Content-Type: application/json');
 echo json_encode($api->handleRequest($method, $path));
 ```
 
-### 3. That's It!
+### 3. Enjoy Your APIs!
 
-Your API is ready with these auto-generated endpoints:
+Your API is ready with **8 endpoints per model**:
 
-- `GET /api/users` - List all users
-- `GET /api/users/{id}` - Get single user
-- `POST /api/users` - Create user
-- `PUT /api/users/{id}` - Update user
-- `DELETE /api/users/{id}` - Delete user
+**Basic CRUD:**
+- `GET /api/users` - List (with search, filter, sort, pagination)
+- `GET /api/users/{id}` - Get single
+- `POST /api/users` - Create
+- `PUT /api/users/{id}` - Update
+- `DELETE /api/users/{id}` - Delete
 
-**Same pattern applies to ALL your models automatically!**
+**Advanced:**
+- `GET /api/users/stats` - Statistics & analytics
+- `GET /api/users/export` - Export data
+- `POST /api/users/batch` - Batch operations
+
+**[See all advanced features →](API-FEATURES.md)**
 
 ## API Endpoints
 

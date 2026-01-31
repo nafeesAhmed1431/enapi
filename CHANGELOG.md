@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-01-31
+
+### Added - Advanced API Features 🚀
+- **Statistics & Analytics API** - Automatic stats endpoints for all resources
+  - Count, sum, avg, min, max aggregations
+  - Group by any field
+  - Date range filtering
+- **Advanced Filtering** - Built-in search and filter capabilities
+  - Full-text search across all fillable fields
+  - Filter by any field value
+  - Multiple simultaneous filters
+- **Pagination** - Automatic pagination support
+  - Configurable items per page
+  - Full pagination metadata
+- **Sorting** - Sort by any field, ascending or descending
+- **Field Selection** - Select only specific fields to return
+- **Batch Operations** - Update or delete multiple records at once
+  - Batch delete by IDs
+  - Batch update by IDs
+- **Export API** - Export data endpoints
+  - JSON export with filters
+  - CSV-ready data structure
+- Complete API features documentation (API-FEATURES.md)
+
+### Changed
+- Updated `LaravelApiController::index()` to support all new query features
+- Routes now include `/stats`, `/export`, and `/batch` endpoints
+- Enhanced documentation with real-world examples
+
 ## [1.2.0] - 2026-01-31
 
 ### Added

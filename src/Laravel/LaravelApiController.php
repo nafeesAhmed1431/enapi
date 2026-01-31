@@ -65,16 +65,67 @@ class LaravelApiController
     }
 
     /**
-     * List all records
+     * List all records with filtering, search, pagination
      */
-    public function index(string $resource): JsonResponse
+    public function index(string $resource, Request $request): JsonResponse
     {
         if (!isset($this->models[$resource])) {
             return response()->json(['error' => 'Resource not found'], 404);
         }
 
         $modelClass = $this->models[$resource];
-        $records = $modelClass::all();
+        $query = $modelClass::query();
+
+        // Search across all columns
+        if ($search = $request->get('search')) {
+            $model = new $modelClass();
+            $searchable = $model->getFillable();
+            
+            $query->where(function($q) use ($searchable, $search) {
+                foreach ($searchable as $field) {
+                    $q->orWhere($field, 'LIKE', "%{$search}%");
+                }
+            });
+        }
+
+        // Filter by specific fields
+        foreach ($request->except(['search', 'sort', 'order', 'page', 'per_page', 'fields']) as $key => $value) {
+            if (!empty($value)) {
+                $query->where($key, $value);
+            }
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort', 'id');
+        $sortOrder = $request->get('order', 'asc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Pagination
+        $perPage = $request->get('per_page', 15);
+        
+        if ($request->has('page')) {
+            $records = $query->paginate($perPage);
+            return response()->json([
+                'success' => true,
+                'data' => $records->items(),
+                'pagination' => [
+                    'total' => $records->total(),
+                    'per_page' => $records->perPage(),
+                    'current_page' => $records->currentPage(),
+                    'last_page' => $records->lastPage(),
+                    'from' => $records->firstItem(),
+                    'to' => $records->lastItem(),
+                ]
+            ]);
+        }
+
+        $records = $query->get();
+
+        // Select specific fields
+        if ($fields = $request->get('fields')) {
+            $fieldsArray = explode(',', $fields);
+            $records = $records->map(fn($item) => $item->only($fieldsArray));
+        }
 
         return response()->json([
             'success' => true,
@@ -193,6 +244,173 @@ class LaravelApiController
             return response()->json([
                 'success' => true,
                 'message' => 'Record deleted successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get stats for a resource
+     */
+    public function stats(string $resource, Request $request): JsonResponse
+    {
+        if (!isset($this->models[$resource])) {
+            return response()->json(['error' => 'Resource not found'], 404);
+        }
+
+        try {
+            $modelClass = $this->models[$resource];
+            $query = $modelClass::query();
+
+            // Apply filters
+            foreach ($request->except(['group_by', 'aggregate', 'date_field', 'date_from', 'date_to']) as $key => $value) {
+                if (!empty($value)) {
+                    $query->where($key, $value);
+                }
+            }
+
+            // Date range filtering
+            if ($dateField = $request->get('date_field')) {
+                if ($dateFrom = $request->get('date_from')) {
+                    $query->where($dateField, '>=', $dateFrom);
+                }
+                if ($dateTo = $request->get('date_to')) {
+                    $query->where($dateField, '<=', $dateTo);
+                }
+            }
+
+            $stats = [
+                'total_count' => $query->count(),
+            ];
+
+            // Aggregations
+            if ($aggregate = $request->get('aggregate')) {
+                $aggregateFields = explode(',', $aggregate);
+                foreach ($aggregateFields as $field) {
+                    if (method_exists($query, 'sum')) {
+                        $stats["sum_{$field}"] = $query->sum($field);
+                        $stats["avg_{$field}"] = $query->avg($field);
+                        $stats["min_{$field}"] = $query->min($field);
+                        $stats["max_{$field}"] = $query->max($field);
+                    }
+                }
+            }
+
+            // Group by
+            if ($groupBy = $request->get('group_by')) {
+                $grouped = $modelClass::selectRaw("{$groupBy}, COUNT(*) as count")
+                    ->groupBy($groupBy)
+                    ->get();
+                $stats['grouped_by'] = $groupBy;
+                $stats['groups'] = $grouped;
+            }
+
+            return response()->json([
+                'success' => true,
+                'resource' => $resource,
+                'stats' => $stats
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Batch operations
+     */
+    public function batch(Request $request, string $resource): JsonResponse
+    {
+        if (!isset($this->models[$resource])) {
+            return response()->json(['error' => 'Resource not found'], 404);
+        }
+
+        try {
+            $action = $request->get('action');
+            $ids = $request->get('ids', []);
+
+            if (empty($ids) || !is_array($ids)) {
+                return response()->json(['error' => 'IDs array required'], 400);
+            }
+
+            $modelClass = $this->models[$resource];
+
+            switch ($action) {
+                case 'delete':
+                    $count = $modelClass::whereIn('id', $ids)->delete();
+                    return response()->json([
+                        'success' => true,
+                        'message' => "{$count} records deleted",
+                        'count' => $count
+                    ]);
+
+                case 'update':
+                    $data = $request->get('data', []);
+                    $model = new $modelClass();
+                    $data = array_intersect_key($data, array_flip($model->getFillable()));
+                    
+                    $count = $modelClass::whereIn('id', $ids)->update($data);
+                    return response()->json([
+                        'success' => true,
+                        'message' => "{$count} records updated",
+                        'count' => $count
+                    ]);
+
+                default:
+                    return response()->json(['error' => 'Invalid action'], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Export data
+     */
+    public function export(string $resource, Request $request): JsonResponse
+    {
+        if (!isset($this->models[$resource])) {
+            return response()->json(['error' => 'Resource not found'], 404);
+        }
+
+        try {
+            $modelClass = $this->models[$resource];
+            $query = $modelClass::query();
+
+            // Apply filters
+            foreach ($request->all() as $key => $value) {
+                if (!empty($value) && $key !== 'format') {
+                    $query->where($key, $value);
+                }
+            }
+
+            $records = $query->get();
+            $format = $request->get('format', 'json');
+
+            if ($format === 'csv') {
+                // Return CSV data structure
+                return response()->json([
+                    'success' => true,
+                    'format' => 'csv',
+                    'data' => $records->toArray(),
+                    'message' => 'Convert to CSV on client side'
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'format' => 'json',
+                'data' => $records,
+                'count' => $records->count()
             ]);
         } catch (\Exception $e) {
             return response()->json([

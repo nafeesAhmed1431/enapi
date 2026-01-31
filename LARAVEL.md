@@ -39,6 +39,24 @@ This creates `config/enapi.php` where you can configure:
 
 Your existing Laravel models now have full CRUD API endpoints automatically!
 
+## Auto-Generated Endpoints
+
+For each model, you get **8 powerful endpoints**:
+
+### Basic CRUD (5 endpoints)
+- `GET /api/{resource}` - List all (with search, filters, pagination, sorting)
+- `GET /api/{resource}/{id}` - Get single record
+- `POST /api/{resource}` - Create record
+- `PUT /api/{resource}/{id}` - Update record
+- `DELETE /api/{resource}/{id}` - Delete record
+
+### Advanced Features (3 endpoints)
+- `GET /api/{resource}/stats` - Statistics & analytics
+- `GET /api/{resource}/export` - Export data
+- `POST /api/{resource}/batch` - Batch operations
+
+**[See all features →](API-FEATURES.md)**
+
 ## Example
 
 If you have these Laravel models:
@@ -62,26 +80,19 @@ class Post extends Model {
 
 You automatically get these endpoints:
 
-### Users API
+### Users API (Basic CRUD)
 - `GET /api/users` - List all users
 - `GET /api/users/1` - Get single user
 - `POST /api/users` - Create user
 - `PUT /api/users/1` - Update user
 - `DELETE /api/users/1` - Delete user
 
-### Products API
-- `GET /api/products` - List all products
-- `GET /api/products/1` - Get single product
-- `POST /api/products` - Create product
-- `PUT /api/products/1` - Update product
-- `DELETE /api/products/1` - Delete product
+### Advanced Features (Auto-generated for all models)
+- `GET /api/users/stats` - Get user statistics
+- `GET /api/users/export` - Export users
+- `POST /api/users/batch` - Batch update/delete users
 
-### Posts API
-- `GET /api/posts` - List all posts
-- `GET /api/posts/1` - Get single post
-- `POST /api/posts` - Create post
-- `PUT /api/posts/1` - Update post
-- `DELETE /api/posts/1` - Delete post
+Same endpoints for **products**, **posts**, and every other model!
 
 ## Configuration
 
@@ -128,34 +139,39 @@ Route::prefix('api')->group(function () use ($api) {
 
 ## Testing API Endpoints
 
-### Create a Product
+### Search Users
 ```bash
-curl -X POST http://localhost:8000/api/products \
+curl "http://localhost:8000/api/users?search=john"
+```
+
+### Filter Products by Category
+```bash
+curl "http://localhost:8000/api/products?category_id=5&status=active"
+```
+
+### Get Products with Pagination
+```bash
+curl "http://localhost:8000/api/products?page=1&per_page=20&sort=price&order=asc"
+```
+
+### Get Sales Statistics
+```bash
+curl "http://localhost:8000/api/orders/stats?date_field=created_at&date_from=2026-01-01&aggregate=total"
+```
+
+### Batch Delete Products
+```bash
+curl -X POST http://localhost:8000/api/products/batch \
   -H "Content-Type: application/json" \
-  -d '{"name":"Laptop","price":999.99,"description":"Gaming laptop"}'
+  -d '{"action":"delete","ids":[1,2,3]}'
 ```
 
-### Get All Products
+### Export Products
 ```bash
-curl http://localhost:8000/api/products
+curl "http://localhost:8000/api/products/export?category_id=5"
 ```
 
-### Get Single Product
-```bash
-curl http://localhost:8000/api/products/1
-```
-
-### Update Product
-```bash
-curl -X PUT http://localhost:8000/api/products/1 \
-  -H "Content-Type: application/json" \
-  -d '{"price":899.99}'
-```
-
-### Delete Product
-```bash
-curl -X DELETE http://localhost:8000/api/products/1
-```
+**[See all advanced features →](API-FEATURES.md)**
 
 ## Response Format
 

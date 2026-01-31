@@ -17,8 +17,24 @@ foreach ($controller->getModels() as $resource => $modelClass) {
     Route::prefix($prefix)
         ->middleware($middleware)
         ->group(function () use ($resource, $controller) {
+            // Stats and Analytics
+            Route::get("$resource/stats", function () use ($controller, $resource) {
+                return $controller->stats($resource, request());
+            });
+            
+            // Export
+            Route::get("$resource/export", function () use ($controller, $resource) {
+                return $controller->export($resource, request());
+            });
+            
+            // Batch operations
+            Route::post("$resource/batch", function () use ($controller, $resource) {
+                return $controller->batch(request(), $resource);
+            });
+            
+            // CRUD operations
             Route::get($resource, function () use ($controller, $resource) {
-                return $controller->index($resource);
+                return $controller->index($resource, request());
             });
             
             Route::get("$resource/{id}", function ($id) use ($controller, $resource) {
