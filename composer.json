@@ -1,6 +1,6 @@
 {
     "name": "nafeesahmed1431/enapi",
-    "description": "Dynamic API package for building REST APIs with ease",
+    "description": "Dynamic API package for building REST APIs with automatic CRUD generation and model-based architecture",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0"
+        "php": "^7.4|^8.0",
+        "ext-pdo": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5|^10.0"
@@ -28,7 +29,13 @@
     "keywords": [
         "api",
         "rest",
-        "dynamic"
+        "dynamic",
+        "crud",
+        "orm",
+        "database",
+        "pdo",
+        "model",
+        "mvc"
     ],
     "support": {
         "issues": "https://github.com/nafeesAhmed1431/enapi/issues",
