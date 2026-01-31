@@ -1,0 +1,37 @@
+{
+    "name": "nafeesahmed1431/enapi",
+    "description": "Dynamic API package for building REST APIs with ease",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nafees Ahmed",
+            "email": "nafeesahmed1431@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4|^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "NafeesAhmed\\Enapi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "NafeesAhmed\\Enapi\\Tests\\": "tests/"
+        }
+    },
+    "keywords": [
+        "api",
+        "rest",
+        "dynamic"
+    ],
+    "support": {
+        "issues": "https://github.com/nafeesAhmed1431/enapi/issues",
+        "source": "https://github.com/nafeesAhmed1431/enapi"
+    }
+}
