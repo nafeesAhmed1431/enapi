@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-01-31
+
+### Added
+- **Laravel Integration** - Full support for Laravel/Eloquent models
+- `LaravelServiceProvider` for automatic service registration
+- `LaravelApiController` for Eloquent model handling
+- Auto-discovery support for Laravel 5.5+
+- Configuration file for Laravel integration
+- Laravel-specific documentation (LARAVEL.md)
+- Respects Laravel's `$fillable` property
+- Works with Laravel's middleware and authentication
+
+### Changed
+- Updated README with Laravel integration information
+- Added Laravel and Eloquent keywords to composer.json
+- Added illuminate/support and illuminate/database as suggested dependencies
+
 ## [1.0.0] - 2026-01-31
 
 ### Added

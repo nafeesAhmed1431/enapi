@@ -2,6 +2,8 @@
 
 A lightweight, flexible PHP package for building dynamic REST APIs with automatic CRUD generation and Composer integration.
 
+**Works with both standalone PHP projects and Laravel applications!**
+
 ## Features
 
 - 🚀 **Auto-generate APIs** - Automatically creates CRUD endpoints for all your models
@@ -11,6 +13,7 @@ A lightweight, flexible PHP package for building dynamic REST APIs with automati
 - 🛡️ **Middleware support** - Add custom middleware to routes
 - 🔌 **Easy to extend** - Override any method or add custom routes
 - ⚡ **Zero configuration** - Just point to your models directory and go!
+- 🎯 **Laravel Integration** - Use with existing Laravel/Eloquent models
 
 ## Installation
 
@@ -20,7 +23,17 @@ Add this to your `composer.json` or require it directly:
 composer require nafeesahmed1431/enapi
 ```
 
-## Quick Start
+## Usage
+
+### For Laravel Projects
+
+**[See Laravel Integration Guide →](LARAVEL.md)**
+
+If you already have Laravel models, just:
+1. `composer require nafeesahmed1431/enapi`
+2. That's it! APIs are auto-generated for all your models
+
+### For Standalone PHP Projects
 
 ### 1. Create Your Models
 
