@@ -95,20 +95,30 @@ class ApiController
     }
 
     /**
+     * Run an action, converting exceptions into a uniform error response.
+     */
+    protected function respondWith(callable $action, int $errorCode = 400): array
+    {
+        try {
+            return $action();
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), $errorCode);
+        }
+    }
+
+    /**
      * List all records
      */
     protected function listAll(Model $model): array
     {
-        try {
+        return $this->respondWith(function () use ($model) {
             $records = $model->all();
             return [
                 'success' => true,
                 'data' => $records,
                 'count' => count($records)
             ];
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
-        }
+        }, 500);
     }
 
     /**
@@ -116,7 +126,7 @@ class ApiController
      */
     protected function getOne(Model $model, $id): array
     {
-        try {
+        return $this->respondWith(function () use ($model, $id) {
             $record = $model->find($id);
             if (!$record) {
                 return $this->errorResponse('Record not found', 404);
@@ -125,9 +135,7 @@ class ApiController
                 'success' => true,
                 'data' => $record
             ];
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
-        }
+        }, 500);
     }
 
     /**
@@ -135,16 +143,14 @@ class ApiController
      */
     protected function create(Model $model, array $data): array
     {
-        try {
+        return $this->respondWith(function () use ($model, $data) {
             $id = $model->create($data);
             return [
                 'success' => true,
                 'message' => 'Record created successfully',
                 'data' => ['id' => $id]
             ];
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage(), 400);
-        }
+        }, 400);
     }
 
     /**
@@ -152,7 +158,7 @@ class ApiController
      */
     protected function update(Model $model, $id, array $data): array
     {
-        try {
+        return $this->respondWith(function () use ($model, $id, $data) {
             $success = $model->update($id, $data);
             if (!$success) {
                 return $this->errorResponse('Record not found', 404);
@@ -161,9 +167,7 @@ class ApiController
                 'success' => true,
                 'message' => 'Record updated successfully'
             ];
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage(), 400);
-        }
+        }, 400);
     }
 
     /**
@@ -171,7 +175,7 @@ class ApiController
      */
     protected function deleteOne(Model $model, $id): array
     {
-        try {
+        return $this->respondWith(function () use ($model, $id) {
             $success = $model->delete($id);
             if (!$success) {
                 return $this->errorResponse('Record not found', 404);
@@ -180,9 +184,7 @@ class ApiController
                 'success' => true,
                 'message' => 'Record deleted successfully'
             ];
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage(), 500);
-        }
+        }, 500);
     }
 
     /**
@@ -191,7 +193,9 @@ class ApiController
     protected function getRequestBody(): array
     {
         $input = file_get_contents('php://input');
-        return json_decode($input, true) ?? [];
+        $decoded = json_decode($input, true);
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     /**
@@ -283,6 +287,13 @@ class ApiController
      */
     public function handleRequest(string $method, string $path): mixed
     {
+        foreach ($this->middleware as $middleware) {
+            $result = call_user_func($middleware, $method, $path);
+            if ($result !== true) {
+                return $result === false ? $this->errorResponse('Forbidden', 403) : $result;
+            }
+        }
+
         foreach ($this->routes as $route) {
             $params = [];
             if ($route['method'] === $method && $this->pathMatches($route['path'], $path, $params)) {

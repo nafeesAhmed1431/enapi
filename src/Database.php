@@ -67,9 +67,13 @@ class Database
         try {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
-            
-            // Return last insert ID for INSERT, affected rows for UPDATE/DELETE
-            return $this->pdo->lastInsertId() ?: $stmt->rowCount();
+
+            // Only INSERT should report the new row's id; everything else reports affected rows.
+            if (stripos(ltrim($sql), 'INSERT') === 0) {
+                return (int) $this->pdo->lastInsertId();
+            }
+
+            return $stmt->rowCount();
         } catch (PDOException $e) {
             throw new \Exception("Execution failed: " . $e->getMessage());
         }

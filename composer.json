@@ -16,6 +16,9 @@
     "require-dev": {
         "phpunit/phpunit": "^9.5|^10.0"
     },
+    "scripts": {
+        "test": "phpunit"
+    },
     "suggest": {
         "illuminate/support": "Required for Laravel integration (^8.0|^9.0|^10.0|^11.0)",
         "illuminate/database": "Required for Laravel Eloquent integration (^8.0|^9.0|^10.0|^11.0)"

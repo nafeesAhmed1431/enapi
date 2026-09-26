@@ -63,4 +63,18 @@ return [
     'excluded_models' => [
         // 'User',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Filterable Columns
+    |--------------------------------------------------------------------------
+    |
+    | Query-string filter/sort/search/group-by columns are restricted to a
+    | model's fillable fields by default. Add a `getFilterable(): array`
+    | method to a model to define a separate whitelist (e.g. to allow
+    | filtering by a non-fillable indexed column without exposing it to
+    | mass assignment). Arbitrary request keys are never used as raw SQL
+    | identifiers.
+    |
+    */
 ];

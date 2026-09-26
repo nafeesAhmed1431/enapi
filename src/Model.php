@@ -8,6 +8,7 @@ abstract class Model
     protected string $table = '';
     protected string $primaryKey = 'id';
     protected array $fillable = [];
+    protected array $filterable = [];
     protected string $resourceName = '';
 
     /**
@@ -82,9 +83,10 @@ abstract class Model
             throw new \Exception('Database connection not set');
         }
 
-        // Filter only fillable fields
-        if (!empty($this->fillable)) {
-            $data = array_intersect_key($data, array_flip($this->fillable));
+        $data = $this->filterFillable($data);
+
+        if (empty($data)) {
+            throw new \Exception('No valid fillable fields provided');
         }
 
         $fields = array_keys($data);
@@ -107,9 +109,10 @@ abstract class Model
             throw new \Exception('Database connection not set');
         }
 
-        // Filter only fillable fields
-        if (!empty($this->fillable)) {
-            $data = array_intersect_key($data, array_flip($this->fillable));
+        $data = $this->filterFillable($data);
+
+        if (empty($data)) {
+            throw new \Exception('No valid fillable fields provided');
         }
 
         $fields = array_keys($data);
@@ -144,6 +147,10 @@ abstract class Model
             return [];
         }
 
+        if (!$this->isFilterableColumn($column)) {
+            throw new \Exception("Column '{$column}' is not filterable");
+        }
+
         $query = "SELECT * FROM {$this->table} WHERE $column = :value";
         return $this->db->query($query, ['value' => $value]);
     }
@@ -158,5 +165,29 @@ abstract class Model
         }
 
         return $this->db->query($sql, $params);
+    }
+
+    /**
+     * Filter request data down to fillable fields only.
+     * Empty $fillable means nothing is fillable (safe default, not "allow everything").
+     */
+    protected function filterFillable(array $data): array
+    {
+        return array_intersect_key($data, array_flip($this->fillable));
+    }
+
+    /**
+     * Whether a column name is safe to interpolate into a query
+     * (a real, whitelisted identifier — not raw user input).
+     */
+    protected function isFilterableColumn(string $column): bool
+    {
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $column)) {
+            return false;
+        }
+
+        $allowed = !empty($this->filterable) ? $this->filterable : $this->fillable;
+
+        return in_array($column, $allowed, true);
     }
 }
